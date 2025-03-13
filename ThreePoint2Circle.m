@@ -1,5 +1,4 @@
 function [R,P0] = ThreePoint2Circle(P1, P2, P3)
-%求圆心和半径，三个点可以求圆心和半径
     x1 = P1(1);    x2 = P2(1);    x3 = P3(1);
     y1 = P1(2);    y2 = P2(2);    y3 = P3(2);
     z1 = x2^2 + y2^2 - x1^2 - y1^2;

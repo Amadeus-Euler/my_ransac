@@ -74,7 +74,6 @@ condition2 = C>15;
 
 condition = condition2;
 % condition = condition1 | condition2;
-% condition = condition1;
 
 mat = xyz(condition,:);
 mat2 = xyz(~condition,:);
@@ -127,7 +126,7 @@ angel = 90-rad2deg(rad);
 fprintf(['lean angle of stem：',num2str(angel)]); 
 
 %% DBSACN Clustering
-epsilon = 0.06;  
+epsilon = 0.1;  
 minPts = 100;     
 tic
 [idx, coreIndices] = dbscan(mat2, epsilon, minPts);
@@ -166,7 +165,7 @@ cos_va = abs(dot(orient,[0,0,1]));
 rad = asin(cos_va);
 angel = 90-rad2deg(rad);
 fprintf(['lean angle of stem：',num2str(angel)]); 
-%%
+%% close all figures
 close all 
 %% diameter along the trunk
 alg='plus';
@@ -284,7 +283,7 @@ opts = fitoptions(ft);
 % opts.Weights = fitdata.ratio;
 opts.SmoothingParam = 0.4; % [0(smooth), 1(unsmooth)]
 
-[fitresult, gof] = fit(fitdata.h, fitdata.d, ft, opts);
+[fitresult, ~] = fit(fitdata.h, fitdata.d, ft, opts);
 
 plot(fitresult);
 ylim([0, 40]); 
@@ -340,7 +339,7 @@ opts = fitoptions(ft);
 % opts.Weights = fitdata.ratio;
 opts.SmoothingParam = 0.6; 
 
-[fitresult, gof] = fit(fitdata.h, fitdata.d, ft, opts);
+[fitresult, ~] = fit(fitdata.h, fitdata.d, ft, opts);
 
 plot(fitresult);
 ylim([0, 40]); 

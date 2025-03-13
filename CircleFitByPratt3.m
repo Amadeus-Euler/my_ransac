@@ -14,7 +14,7 @@ function [r,p,BR,ip_on_circle_sel,longest_ip_on_circle_sel] = CircleFitByPratt3(
 %           so it can be easily programmed in any programming language
 %
 %--------------------------------------------------------------------------
-BR=0;%初始赋值
+BR=0;
 ip_on_circle_sel=[];
 longest_ip_on_circle_sel=[];
 n = size(XY,1);      % number of data points
@@ -95,16 +95,11 @@ Center = [Mxz*(Myy-xnew)-Myz*Mxy , Myz*(Mxx-xnew)-Mxz*Mxy]/DET/2;
 p=Center+centroid;
 r= sqrt(Center*Center'+Mz+2*xnew);
 
-% 计算每个点到圆心的距离dis
 dis = sqrt(sum((XY(:,1:2)-p).^2,2));
-% 计算 dis和拟合圆的误差
 res = abs(dis - r);
-% 选择小于误差的点，进入到内点中
 d = XY(res<sigma,:);
 if(isempty(d))
     return
 end
 [~,BR,ip_on_circle_sel,longest_ip_on_circle_sel]=findStartandEndPerSet(d,r,p,15);
-
-
-end    %    CircleFitByPratt2
+end    

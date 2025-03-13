@@ -1,4 +1,5 @@
 function [arclength,br,p_proj_sel,long_ip] = findStartandEndPerSet(points,radii,center,angle_eps)  
+%     Purpose: To accurately calculate the radian of each cluster
 %     Input:  points,radii,center,angle_eps
 %     points is the point data, radii is the radii of the fitted circle,
 %     center is the coordinate of circle center, angle_eps is the threshold of angel 
@@ -58,11 +59,11 @@ function [arclength,br,p_proj_sel,long_ip] = findStartandEndPerSet(points,radii,
             smallset=thetas_sets(thetas_sets(:,1)<fenge,:);
             range_breakset=2*pi-min(largeset(:,1))+max(smallset(:,1));
             arclength=range_breakset*radii;
-            range_per_set(1,2)=range_breakset; %修正BR
+            range_per_set(1,2)=range_breakset; % revamp BR
         end
         long_ip=p_proj_sel;
     else% more than one clusters
-        if (sum(range_per_set(:,2))>2*pi-angle_eps*pi/180) %one culster pass the 0 degree
+        if (sum(range_per_set(:,2))>2*pi-angle_eps*pi/180) % one culster pass the 0 degree
             maxrange=max(range_per_set(:,2));
             maxrange_idx=range_per_set(range_per_set(:,2)==maxrange,1);
             remain_idx=range_per_set(range_per_set(:,2)<maxrange,1);
