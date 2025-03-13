@@ -82,7 +82,7 @@ pcshow(mat);
 figure
 pcshow(mat2);
 
-%% GMM clustering
+%% GMM clustering 
 model = fitgmdist(mat2, 2);
 idx = cluster(model,mat2);
 
@@ -125,7 +125,7 @@ rad = asin(cos_va);
 angel = 90-rad2deg(rad);
 fprintf(['lean angle of stem：',num2str(angel)]); 
 
-%% DBSACN Clustering
+%% DBSACN Clustering :IF the GMM is good, jump this section
 epsilon = 0.1;  
 minPts = 100;     
 tic
@@ -168,7 +168,7 @@ fprintf(['lean angle of stem：',num2str(angel)]);
 %% close all figures
 close all 
 %% diameter along the trunk
-alg='plus';
+alg='ran'; %ran for ransac, plus for modified-ransac, ols for Pratt.
 fenli=mat_sel;
 theta = linspace(0, 2*pi, 100);
 max_r=0.20;% max diameter   
@@ -241,8 +241,6 @@ for i=1:length(hs)
 end
     hds=[hs',ds,ranges];
     hds_t=array2table(hds,"VariableNames",{'h','d','range'});
-
-
 
 %% slice selection method 1
 hds_t_ex0=hds_t(hds_t.d>0,:);
