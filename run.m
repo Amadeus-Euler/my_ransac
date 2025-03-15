@@ -77,9 +77,9 @@ condition = condition2;
 
 mat = xyz(condition,:);
 mat2 = xyz(~condition,:);
-figure
-pcshow(mat);
-figure
+figure %see the removed points
+pcshow(mat); 
+figure%see the retained points
 pcshow(mat2);
 
 %% GMM clustering 
@@ -96,17 +96,15 @@ if std(mat_candi1(:,1))>std(mat_candi2(:,1))
     mat_sel=mat2(mat2(:,4) == 2,1:3);
 end
 
-
-
-figure
-scatter3(mat2(:,1), mat2(:,2), mat2(:,3), 6 ,'filled');
-hold on
-scatter3(mat_sel(:,1), mat_sel(:,2), mat_sel(:,3));
-
-figure
-scatter3(xyz(:,1), xyz(:,2), xyz(:,3), 6 ,'filled');
-hold on
-scatter3(mat_sel(:,1), mat_sel(:,2), mat_sel(:,3));
+% figure
+% scatter3(mat2(:,1), mat2(:,2), mat2(:,3), 6 ,'filled');
+% hold on
+% scatter3(mat_sel(:,1), mat_sel(:,2), mat_sel(:,3));
+% 
+% figure
+% scatter3(xyz(:,1), xyz(:,2), xyz(:,3), 6 ,'filled');
+% hold on
+% scatter3(mat_sel(:,1), mat_sel(:,2), mat_sel(:,3));
 
 figure
 pcshow(ptCloud_d);
@@ -133,8 +131,7 @@ tic
 toc
 
 
-figure
-scatter3(mat2(:,1), mat2(:,2), mat2(:,3), 6, idx, 'filled');
+
 
 % calculate H-W ratio
 mat2(:,4)=idx;
@@ -152,6 +149,7 @@ sets = find(HWs>compare);
 condi = ismember(mat2(:,4),sets);
 mat_sel=mat2(condi,1:3);
 
+figure
 scatter3(mat2(:,1), mat2(:,2), mat2(:,3), 6, idx, 'filled');
 hold on
 scatter3(mat_sel(:,1), mat_sel(:,2), mat_sel(:,3));
@@ -168,7 +166,7 @@ fprintf(['lean angle of stem：',num2str(angel)]);
 %% close all figures
 close all 
 %% diameter along the trunk
-alg='ran'; %ran for ransac, plus for modified-ransac, ols for Pratt.
+alg='plus'; %ran for ransac, plus for modified-ransac, ols for Pratt.
 fenli=mat_sel;
 theta = linspace(0, 2*pi, 100);
 max_r=0.20;% max diameter   
@@ -216,13 +214,13 @@ for i=1:length(hs)
     if k==0
         k=20;
     end
-    subplot(4,5,k);
-    scatter(crosss(:,1),crosss(:,2),10,'filled');
+    subplot(4,5,k);% longest cluster is black-hollow point, different clusters are marked with different colors.
+    scatter(crosss(:,1),crosss(:,2),10,'filled','MarkerfaceAlpha', 0.2);
     axis equal;
     hold on
 %     scatter(ip_on_circle_sel(:,1), ip_on_circle_sel(:,2),10, 'MarkerEdgeColor','red');
     scatter(ip_on_circle_sel_cluster(:,1), ip_on_circle_sel_cluster(:,2),20,ip_on_circle_sel_cluster(:,3),"filled");
-    scatter(longest_ip_on_circle_sel(:,1), longest_ip_on_circle_sel(:,2),40, 'MarkerEdgeColor','black');
+    scatter(longest_ip_on_circle_sel(:,1), longest_ip_on_circle_sel(:,2),40, 'MarkerEdgeColor','black','MarkerEdgeAlpha', 0.2);
     if r==0
         fprintf([',no',num2str(i),', height',num2str(hs(i)),'fail to fit\n']);
     end

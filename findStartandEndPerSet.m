@@ -36,7 +36,11 @@ function [arclength,br,p_proj_sel,long_ip] = findStartandEndPerSet(points,radii,
         set_sd=std(set_scores);
         range_per_set(j, :) = [current_class, set_range, set_sd];
     end
-    %just one cluster
+    %Just one cluster
+        % When there is only one class, it is difficult to judge whether it has
+        % passed 0 degrees, so the line segment sum is used as the arc length to 
+        % calculate the corresponding radian, and the original radian is compared
+        % with the carefully designed threshold value as the judgment condition.
     if (max(idx)==1)
         order_thetas_sets=sortrows(thetas_sets,1);
         order_thetas_sets(:,2)=radii;
@@ -63,7 +67,7 @@ function [arclength,br,p_proj_sel,long_ip] = findStartandEndPerSet(points,radii,
         end
         long_ip=p_proj_sel;
     else% more than one clusters
-        if (sum(range_per_set(:,2))>2*pi-angle_eps*pi/180) % one culster pass the 0 degree
+        if (sum(range_per_set(:,2))>2*pi-angle_eps*pi/180) % one of culsters passes the 0 degree
             maxrange=max(range_per_set(:,2));
             maxrange_idx=range_per_set(range_per_set(:,2)==maxrange,1);
             remain_idx=range_per_set(range_per_set(:,2)<maxrange,1);
