@@ -176,7 +176,7 @@ max_r=0.20;% max diameter
 hs = fagen:0.1:H;
 sigma=0.004;
 ratios=zeros(length(hs),1);
-ranges=zeros(length(hs),1);
+BRs=zeros(length(hs),1);
 ds = zeros(length(hs),1);
 ps = zeros(length(hs),2);
 thick=0.02; %slice thickness
@@ -205,21 +205,24 @@ for i=1:length(hs)
     if strcmp(alg,'ols')
         [r,p,BR,ip_on_circle_sel,longest_ip_on_circle_sel] = CircleFitByPratt3(crosss,sigma);
     end
-
+%     data=crosss;itermax=150;max_r=0.25;
     if(isempty(ip_on_circle_sel))
         continue
     end
     ip_on_circle_sel_t=array2table(ip_on_circle_sel,'VariableNames',{'x','y','set'});
+%     cluster the ip_on_circle_sel
+    [~,~,ip_on_circle_sel_cluster,~]=findStartandEndPerSet(ip_on_circle_sel,r,p,15);
     k=mod(i,20);
     if k==0
         k=20;
     end
     subplot(4,5,k);
-    scatter(crosss(:,1),crosss(:,2),20,'filled');
+    scatter(crosss(:,1),crosss(:,2),10,'filled');
     axis equal;
     hold on
-    scatter(ip_on_circle_sel(:,1), ip_on_circle_sel(:,2),10, 'MarkerEdgeColor','red');
-    scatter(longest_ip_on_circle_sel(:,1), longest_ip_on_circle_sel(:,2),30, 'MarkerEdgeColor','blue');
+%     scatter(ip_on_circle_sel(:,1), ip_on_circle_sel(:,2),10, 'MarkerEdgeColor','red');
+    scatter(ip_on_circle_sel_cluster(:,1), ip_on_circle_sel_cluster(:,2),20,ip_on_circle_sel_cluster(:,3),"filled");
+    scatter(longest_ip_on_circle_sel(:,1), longest_ip_on_circle_sel(:,2),40, 'MarkerEdgeColor','black');
     if r==0
         fprintf([',no',num2str(i),', height',num2str(hs(i)),'fail to fit\n']);
     end
@@ -237,9 +240,9 @@ for i=1:length(hs)
     end
        %constrain the max radii
     max_r=median([ds(ds~=0);50])/200;
-    ranges(i)=BR;
+    BRs(i)=BR;
 end
-    hds=[hs',ds,ranges];
+    hds=[hs',ds,BRs];
     hds_t=array2table(hds,"VariableNames",{'h','d','range'});
 
 %% slice selection method 1

@@ -29,20 +29,22 @@ try
             continue
         end
         len = length(d(:,1));
-        [arclength,br,p_proj_sel,long_ip]=findStartandEndPerSet(d,r1,p1,15);
-        if arclength==-1
-            iter=iter+1;
-            continue
-        end
+        
+%         if arclength==-1
+%             iter=iter+1;
+%             continue
+%         end
 
         if (len>=lengest)
             lengest = len;
+            [~,br,p_proj_sel,long_ip]=findStartandEndPerSet(d,r1,p1,15);
+%             points=d;radii=r1;center=p1;angle_eps=15;
              r = r1; p = p1; BR=br;ip_on_circle_sel = p_proj_sel; longest_ip_on_circle_sel = long_ip;
         end
         iter = iter + 1;
     end
 catch
-    fprintf('点数太少')
+    fprintf('number of points is too small')
     r=0;p=0;
 end
 
