@@ -74,6 +74,7 @@ condition2 = C>15;
 
 condition = condition2;
 % condition = condition1 | condition2;
+% condition = condition1;
 
 mat = xyz(condition,:);
 mat2 = xyz(~condition,:);
@@ -154,6 +155,10 @@ scatter3(mat2(:,1), mat2(:,2), mat2(:,3), 6, idx, 'filled');
 hold on
 scatter3(mat_sel(:,1), mat_sel(:,2), mat_sel(:,3));
 
+figure
+pcshow(ptCloud_d);
+hold on
+scatter3(mat_sel(:,1), mat_sel(:,2), mat_sel(:,3),4,'filled','red');
 
 covs = cov(mat_sel(:,1:3)); 
 [v,~] = eig(covs);
@@ -166,11 +171,12 @@ fprintf(['lean angle of stem：',num2str(angel)]);
 %% close all figures
 close all 
 %% diameter along the trunk
-alg='plus'; %ran for ransac, plus for modified-ransac, ols for Pratt.
+tic
+plotting=0; %plot the slice or not
+alg='ran'; %ran for ransac, plus for modified-ransac, ols for Pratt.
 fenli=mat_sel;
 theta = linspace(0, 2*pi, 100);
 max_r=0.20;% max diameter   
-
 hs = fagen:0.1:H;
 sigma=0.004;
 ratios=zeros(length(hs),1);
@@ -182,9 +188,6 @@ for i=1:length(hs)
     if hs(i)>6
         thick = 0.05;
     end
-    if mod(i-1,20) == 0
-        figure
-    end
     span = [hs(i)-thick/2,hs(i)+thick/2];
     sub_fenli = fenli(span(1)<fenli(:,3)&span(2)>fenli(:,3),:);
     crosss = sub_fenli(:,1:2);
@@ -192,8 +195,6 @@ for i=1:length(hs)
     if (isempty(crosss))
         continue
     end
-
-    
     if strcmp(alg,'plus')
         [r,p,BR,ip_on_circle_sel,longest_ip_on_circle_sel] = myRanSac(crosss,sigma,150,max_r);
     end
@@ -207,41 +208,46 @@ for i=1:length(hs)
     if(isempty(ip_on_circle_sel))
         continue
     end
-    ip_on_circle_sel_t=array2table(ip_on_circle_sel,'VariableNames',{'x','y','set'});
-%     cluster the ip_on_circle_sel
-    [~,~,ip_on_circle_sel_cluster,~]=findStartandEndPerSet(ip_on_circle_sel,r,p,15);
-    k=mod(i,20);
-    if k==0
-        k=20;
-    end
-    subplot(4,5,k);% longest cluster is black-hollow point, different clusters are marked with different colors.
-    scatter(crosss(:,1),crosss(:,2),10,'filled','MarkerfaceAlpha', 0.2);
-    axis equal;
-    hold on
-%     scatter(ip_on_circle_sel(:,1), ip_on_circle_sel(:,2),10, 'MarkerEdgeColor','red');
-    scatter(ip_on_circle_sel_cluster(:,1), ip_on_circle_sel_cluster(:,2),20,ip_on_circle_sel_cluster(:,3),"filled");
-    scatter(longest_ip_on_circle_sel(:,1), longest_ip_on_circle_sel(:,2),40, 'MarkerEdgeColor','black','MarkerEdgeAlpha', 0.2);
-    if r==0
-        fprintf([',no',num2str(i),', height',num2str(hs(i)),'fail to fit\n']);
-    end
-    if r~=0
-        xfit = p(1) + r * cos(theta);
-        yfit = p(2) + r * sin(theta);
-        plot(xfit, yfit, '--', 'Color', 'red', 'LineWidth', 1.5);
-        title(['no:',num2str(i),', h=',num2str(round(hs(i),3)),', d=',num2str(round(r*200,3))]);
-        hold off
-        ds(i)=r*200;
-        ps(i,:)=p;
-    else
-        title(['no:',num2str(i),', h=',num2str(hs(i)),', d=',num2str(r*200)]);
-        hold off
-    end
-       %constrain the max radii
+    ds(i)=r*200;ps(i,:)=p;BRs(i)=BR;
+%    constrain the max radii
     max_r=median([ds(ds~=0);50])/200;
-    BRs(i)=BR;
+%     plot the slices
+    if plotting
+        if mod(i-1,20) == 0
+            figure
+        end
+        ip_on_circle_sel_t=array2table(ip_on_circle_sel,'VariableNames',{'x','y','set'});
+    %     cluster the ip_on_circle_sel
+        [~,~,ip_on_circle_sel_cluster,~]=findStartandEndPerSet(ip_on_circle_sel,r,p,15);
+        k=mod(i,20);
+        if k==0
+            k=20;
+        end
+        subplot(4,5,k);% longest cluster is black-hollow point, different clusters are marked with different colors.
+        scatter(crosss(:,1),crosss(:,2),10,'filled','MarkerfaceAlpha', 0.2);
+        axis equal;
+        hold on
+    %     scatter(ip_on_circle_sel(:,1), ip_on_circle_sel(:,2),10, 'MarkerEdgeColor','red');
+        scatter(ip_on_circle_sel_cluster(:,1), ip_on_circle_sel_cluster(:,2),20,ip_on_circle_sel_cluster(:,3),"filled");
+        scatter(longest_ip_on_circle_sel(:,1), longest_ip_on_circle_sel(:,2),40, 'MarkerEdgeColor','black','MarkerEdgeAlpha', 0.2);
+        if r==0
+            fprintf([',no',num2str(i),', height',num2str(hs(i)),'fail to fit\n']);
+        end
+        if r~=0
+            xfit = p(1) + r * cos(theta);
+            yfit = p(2) + r * sin(theta);
+            plot(xfit, yfit, '--', 'Color', 'red', 'LineWidth', 1.5);
+            title(['no:',num2str(i),', h=',num2str(round(hs(i),3)),', d=',num2str(round(r*200,3))]);
+            hold off
+        else
+            title(['no:',num2str(i),', h=',num2str(hs(i)),', d=',num2str(r*200)]);
+            hold off
+        end
+    end
 end
-    hds=[hs',ds,BRs];
-    hds_t=array2table(hds,"VariableNames",{'h','d','range'});
+toc
+hds=[hs',ds,BRs];
+hds_t=array2table(hds,"VariableNames",{'h','d','BRs'});
 
 %% slice selection method 1
 hds_t_ex0=hds_t(hds_t.d>0,:);
@@ -253,19 +259,19 @@ interval=10;
 
 for i=1:ceil(heights/interval)
     hds_sub=hds_t_ex0_higher5(i*interval-interval+1:min(heights,i*interval),:);  
-    sortedDf = sortrows(hds_sub,"range",'descend');
+    sortedDf = sortrows(hds_sub,"BRs",'descend');
     choosed_h=sortedDf.h(1); 
     rowIndices = find(hds_t_ex0_higher5.h == choosed_h);
     hds_t_ex0_higher5.save(rowIndices)=1;
 end
 hds_t_ex0_higher5_sel=hds_t_ex0_higher5(hds_t_ex0_higher5.save==1,:);
 hds_t_ex0_higher5_sel.save=[];
-maxrange=[hds_t_ex0(hds_t_ex0.h<=0.6,:);hds_t_ex0_higher5_sel;{H,0,0}];% add (H,0)
+maxrange=[hds_t_ex0(hds_t_ex0.h<=0.6,:);hds_t_ex0_higher5_sel;{H,0,3.14}];% add (H,0)
 maxrange.save=ones(height(maxrange),1);
 
 fitdata=maxrange(maxrange.save==1,:);
 figure
-scatter(fitdata.h,fitdata.d, [],fitdata.range);
+scatter(fitdata.h,fitdata.d, [],fitdata.BRs);
 lightBlue = [0.7, 0.85, 1]; 
 blue = [0, 0, 1];           
 N = 256; 
@@ -273,22 +279,20 @@ customColormap = [linspace(lightBlue(1), blue(1), N)', ...
                   linspace(lightBlue(2), blue(2), N)', ...
                   linspace(lightBlue(3), blue(3), N)'];
 colormap(customColormap); 
-
-
 hold on
 ft = fittype('smoothingspline');
 
 opts = fitoptions(ft);
 % opts.Weights = fitdata.ratio;
-opts.SmoothingParam = 0.4; % [0(smooth), 1(unsmooth)]
+opts.SmoothingParam = 0.6; % [0(smooth), 1(unsmooth)]
 
 [fitresult, ~] = fit(fitdata.h, fitdata.d, ft, opts);
 
 plot(fitresult);
-ylim([0, 40]); 
+ylim([0, max(fitdata.d)]); 
 title('cubic curve by method 1');xlabel('h');ylabel('d');
 figure
-scatter(hds_t_ex0.h,hds_t_ex0.d,[],hds_t_ex0.range);
+scatter(hds_t_ex0.h,hds_t_ex0.d,[],hds_t_ex0.BRs);
 title('all h-d pairs');xlabel('h');ylabel('d');
 
 %% slice selection method 2
@@ -317,12 +321,13 @@ for iter=4:height(hds_t_ex0)
 end
 
 
-hds_t_ex0(end+1,:)={H,0,1,1};
-hds_t_ex0_sel=hds_t_ex0(hds_t_ex0.save==1,:);
-fitdata=hds_t_ex0_sel;
+hds_t_ex0(end+1,:)={H,0,3.14,1};
 
+hds_t_ex0_sel=hds_t_ex0(hds_t_ex0.save==1,:);
+
+fitdata2=hds_t_ex0_sel(hds_t_ex0_sel.save==1,:);
 figure
-scatter(fitdata.h,fitdata.d, [],fitdata.range);
+scatter(fitdata2.h,fitdata2.d, [],fitdata2.BRs);
 lightBlue = [0.7, 0.85, 1]; 
 blue = [0, 0, 1];           
 N = 256; 
@@ -336,10 +341,17 @@ ft = fittype('smoothingspline');
 
 opts = fitoptions(ft);
 % opts.Weights = fitdata.ratio;
-opts.SmoothingParam = 0.6; 
+opts.SmoothingParam = 0.6; % [0(smooth), 1(unsmooth)]
 
-[fitresult, ~] = fit(fitdata.h, fitdata.d, ft, opts);
+[fitresult2, ~] = fit(fitdata2.h, fitdata2.d, ft, opts);
 
-plot(fitresult);
-ylim([0, 40]); 
+plot(fitresult2);
+ylim([0, max(fitdata2.d)]); 
 title('cubic curve by method 2');xlabel('h');ylabel('d');
+%% compare two methods
+figure
+plot(fitresult,'red');
+hold on
+plot(fitresult2,'blue');
+legend('method 1', 'method 2'); 
+hold off
